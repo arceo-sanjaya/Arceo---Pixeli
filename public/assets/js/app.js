@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         upscale: {
             name: 'Upscale',
-            description: 'Enlarge your image\'s resolution up to 10x without significant loss of detail quality.',
+            description: 'Enlarge your image\'s resolution up to 4x without significant loss of detail quality.',
             buttonText: 'Upscale',
             demo: { aspectRatio: '1200 / 700', before: 'https://files.catbox.moe/kzvbhy.jpg', after: 'https://files.catbox.moe/ho0az9.png' }
         },
@@ -130,12 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const isUpscaleTool = activeTool === 'upscale';
         upscaleLevelGroup.style.display = isUpscaleTool ? 'flex' : 'none';
 
-        const isHighScale = isUpscaleTool && ['6', '8', '10'].includes(upscaleLevelSelect.value);
+        targetFormatGroup.classList.remove('disabled');
+        needCompressSelect.parentElement.classList.remove('disabled');
 
-        targetFormatGroup.classList.toggle('disabled', isHighScale);
-        needCompressSelect.parentElement.classList.toggle('disabled', isHighScale);
-
-        if (isHighScale || needCompressSelect.value === 'no') {
+        if (needCompressSelect.value === 'no') {
             imageQualityGroup.classList.add('disabled');
             compressLevelSelect.parentElement.classList.add('disabled');
         } else {
@@ -414,24 +412,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function process_image(imageUrl, func, options) {
-        const highScaleLevels = ['6', '8', '10'];
-        if (func === 'upscale' && highScaleLevels.includes(options.upscalingLevel)) {
-            const apiResponse = await fetch(`https://api.siputzx.my.id/api/tools/upscale?url=${encodeURIComponent(imageUrl)}&scale=${options.upscalingLevel}`);
-            if (!apiResponse.ok) throw new Error('External upscale API failed.');
-            const imageBlob = await apiResponse.blob();
-            if (!imageBlob.type.startsWith('image/')) throw new Error('External API did not return a valid image.');
-            return URL.createObjectURL(imageBlob);
-        } else {
-            const params = new URLSearchParams({ 
-                imageUrl, aiFunction: func, targetFormat: options.targetFormat, imageQuality: options.imageQuality, 
-                upscalingLevel: options.upscalingLevel, needCompress: options.needCompress, compressLevel: options.compressLevel, 
-                fileOriginalExtension: 'png' 
-            });
-            const apiResponse = await fetch("https://pxpic.com/callAiFunction", { method: "POST", headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params.toString() });
-            if (!apiResponse.ok) throw new Error('AI processing failed.');
-            const data = await apiResponse.json();
-            return data.resultImageUrl || null;
+        const body = {
+            imageUrl,
+            aiFunction: func,
+            targetFormat: options.targetFormat,
+            imageQuality: options.imageQuality,
+            upscalingLevel: options.upscalingLevel,
+            needCompress: options.needCompress,
+            compressLevel: options.compressLevel,
+            fileOriginalExtension: 'png'
+        };
+
+        const response = await fetch("/pxpic", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+            throw new Error('Backend API failed.');
         }
+
+        const data = await response.json();
+        return data.resultImageUrl || null;
     }
     
     function init_slider(slider) {
