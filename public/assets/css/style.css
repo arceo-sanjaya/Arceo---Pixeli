@@ -1,9 +1,9 @@
 :root {
-    --bg-primary: #1a1a2e;
+    --bg-primary: #0a0a0a;
     --color-accent: #0091FF;
     --color-text-light: #e0e0e0;
     --color-text-dark: #333;
-    --color-secondary-bg: #2a2a3e;
+    --color-secondary-bg: #1a1a1a;
     --color-border: #444;
     --font-family: 'Space Grotesk', sans-serif;
 }
