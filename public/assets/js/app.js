@@ -36,10 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const tool_slugs = Object.fromEntries(Object.keys(toolsConfig).map(key => [slugify(toolsConfig[key].name), key]));
     const tool_key_by_slug = Object.fromEntries(Object.keys(toolsConfig).map(key => [key, slugify(toolsConfig[key].name)]));
     
-    if (window.location.pathname === '/') {
+    if (!window.location.hash) {
         const firstToolKey = Object.keys(toolsConfig)[0];
         const firstToolSlug = tool_key_by_slug[firstToolKey];
-        history.replaceState({ tool: firstToolKey }, '', `/${firstToolSlug}`);
+        history.replaceState(null, '', `#${firstToolSlug}`);
     }
 
     const toolNav = document.getElementById('tool-nav');
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.keys(toolsConfig).forEach((key) => {
         const tool = toolsConfig[key];
         const button = document.createElement('a');
-        button.href = `/${slugify(tool.name)}`;
+        button.href = `#${slugify(tool.name)}`;
         button.className = 'tool-button';
         button.dataset.tool = key;
         button.textContent = tool.name;
@@ -167,13 +167,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handle_route_change = () => {
-        const path = window.location.pathname;
-        const slug = path.substring(1);
-
-        if (tool_slugs[slug]) {
-            const toolKey = tool_slugs[slug];
+        const hash = window.location.hash.substring(1);
+        
+        if (tool_slugs[hash]) {
+            const toolKey = tool_slugs[hash];
             set_active_tool(toolKey);
             document.title = `${toolsConfig[toolKey].name}`;
+        } else if (hash === '') {
+            const firstToolKey = Object.keys(toolsConfig)[0];
+            const firstToolSlug = tool_key_by_slug[firstToolKey];
+            history.replaceState(null, '', `#${firstToolSlug}`);
+            set_active_tool(firstToolKey);
+            document.title = toolsConfig[firstToolKey].name;
         } else {
             not_found_page();
         }
@@ -183,12 +188,9 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
             const toolKey = button.dataset.tool;
-            const url = button.href;
-            if (window.location.pathname !== url.replace(window.location.origin, '')) {
-                history.pushState({ tool: toolKey }, '', url);
-            }
-            set_active_tool(toolKey);
-            document.title = `${toolsConfig[toolKey].name}`;
+            const slug = tool_key_by_slug[toolKey];
+            history.pushState(null, '', `#${slug}`);
+            handle_route_change();
         });
     });
 
