@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arceo - Pixeli</title>
+    <meta property="og:title" content="Arceo - Pixeli">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><span style="color: var(--color-accent);">Arceo - </span>Pixeli</h1>
+            <p class="description" style="max-width: 600px; margin: 0 auto;">Advanced AI tools to enhance, fix, and transform your images with ease.</p>
+        </header>
+        
+        <div class="nav-wrapper">
+            <nav id="tool-nav"></nav>
+            <div class="nav-scrollbar">
+                <div class="nav-scrollbar-thumb"></div>
+            </div>
+        </div>
+
+        <main id="tool-main"></main>
+
+        <div id="not-found-section" style="display: none; text-align: center; padding: 2rem 1rem;">
+            <h2 style="margin-top: 1rem; border-bottom: none;">404 - Page Not Found</h2>
+            <p class="description">Sorry, the page you are looking for does not exist.</p>
+        </div>
+
+        <div id="main-content-wrapper">
+            <hr>
+            <div class="options-panel">
+                <div id="target-format-group" class="option-group">
+                    <label for="target-format">Target Format</label>
+                    <select id="target-format">
+                        <option value="png">PNG</option>
+                        <option value="jpg">JPG</option>
+                        <option value="webp">WEBP</option>
+                        <option value="avif">AVIF</option>
+                        <option value="tiff">TIFF</option>
+                    </select>
+                </div>
+                <div id="need-compress-group" class="option-group">
+                    <label for="need-compress">Need Compress</label>
+                    <select id="need-compress">
+                        <option value="no">No</option><option value="yes">Yes</option>
+                    </select>
+                </div>
+                 <div id="image-quality-group" class="option-group">
+                    <label for="image-quality">Image Quality</label>
+                    <select id="image-quality">
+                        <option value="100">100%</option><option value="80">80%</option><option value="60">60%</option><option value="40">40%</option>
+                    </select>
+                </div>
+                <div id="compress-level-group" class="option-group">
+                    <label for="compress-level">Compress Level</label>
+                    <select id="compress-level">
+                        <option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option><option value="9">9</option>
+                    </select>
+                </div>
+                <div id="upscale-level-group" class="option-group">
+                    <label for="upscale-level">Upscaling Level</label>
+                    <select id="upscale-level">
+                        <option value="2">2x</option><option value="4">4x (Default)</option><option value="6">6x</option><option value="8">8x</option><option value="10">10x</option>
+                    </select>
+                </div>
+            </div>
+
+            <h2 class="upload-heading">Upload Your Image</h2>
+            <div class="upload-area" id="upload-box">
+                <span>Drag & Drop your image here or Click to Upload</span>
+                <p>PNG, JPG, WEBP, AVIF, TIFF. Max 5MB.</p>
+            </div>
+            <input type="file" id="file-input" accept="image/png, image/jpeg, image/webp, image/avif, image/tiff">
+
+            <div class="result-container" id="result-box">
+                <div id="preview-section" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                    <div class="preview-image-container">
+                        <img src="" alt="Image Preview" id="preview-image">
+                        <div id="upload-overlay" style="display: none;">
+                           <div class="loader"></div>
+                           <p>Uploading...</p>
+                        </div>
+                    </div>
+                    <button id="improve-button">Process</button>
+                </div>
+
+                <div id="processing-section" style="display: none;" class="processing-info">
+                    <p id="status-text">Processing your image...</p>
+                    <div class="loader" id="loader"></div>
+                </div>
+
+                <div id="result-slider-wrapper" style="width:100%; display:none; flex-direction: column; align-items: center; gap: 1rem;">
+                     <div class="ba-slider" id="result-slider">
+                        <div class="image-wrapper before-image"><img src="" alt="Before" id="result-before-img"><span class="label before">Before</span></div>
+                        <div class="image-wrapper after-image"><img src="" alt="After" id="result-after-img"><span class="label after">After</span></div>
+                        <div class="handle"><div class="arrow"></div></div>
+                    </div>
+                    <div class="result-buttons">
+                        <button id="download-button">Download</button>
+                        <button id="redo-button"></button>
+                    </div>
+                </div>
+            </div>
+
+            <section class="how-to-use-section">
+                <h3>How to Use Arceo Pixeli</h3>
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        </div>
+                        <h4>1. Upload Image</h4>
+                        <p>Click the upload box or drag and drop your image. We support PNG, JPG, and more.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        </div>
+                        <h4>2. Adjust Options</h4>
+                        <p>Choose your desired tool, format, quality, and compression settings above.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"></path><path d="M12 18v4"></path><path d="M4.93 4.93l2.83 2.83"></path><path d="M16.24 16.24l2.83 2.83"></path><path d="M2 12h4"></path><path d="M18 12h4"></path><path d="M4.93 19.07l2.83-2.83"></path><path d="M16.24 7.76l2.83-2.83"></path></svg>
+                        </div>
+                        <h4>3. Process</h4>
+                        <p>Click the button to start the AI enhancement. Wait for the magic to happen.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4M17 9l-5 5-5-5M12 12.8V2.5"/></svg>
+                        </div>
+                        <h4>4. Download</h4>
+                        <p>Compare the result using the slider, then download your enhanced image.</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <div id="crop-modal" style="display: none;">
+        <div class="crop-modal-content">
+            <h2>Crop Your Image</h2>
+            <div class="crop-controls">
+                <div class="crop-presets">
+                    <button class="aspect-ratio-btn" data-ratio="NaN">Free</button>
+                    <button class="aspect-ratio-btn" data-ratio="1">1:1</button>
+                    <button class="aspect-ratio-btn" data-ratio="0.5625">9:16</button>
+                    <button class="aspect-ratio-btn" data-ratio="1.5">3:2</button>
+                    <button class="aspect-ratio-btn" data-ratio="1.77777777778">16:9</button>
+                </div>
+                <div class="crop-manual">
+                    <label for="crop-width-input">W:</label>
+                    <input type="number" id="crop-width-input">
+                    <span>×</span>
+                    <label for="crop-height-input">H:</label>
+                    <input type="number" id="crop-height-input">
+                </div>
+            </div>
+            <div class="crop-image-container">
+                <img id="image-to-crop">
+            </div>
+            <div class="crop-buttons">
+                <button id="cancel-crop-button">Cancel</button>
+                <button id="apply-crop-button">Apply Crop</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+    <script src="/assets/app.js"></script>
+</body>
+</html>
