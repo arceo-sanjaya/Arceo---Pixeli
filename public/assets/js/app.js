@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toolNav = document.getElementById('tool-nav');
     const toolMain = document.getElementById('tool-main');
     const mainContentWrapper = document.getElementById('main-content-wrapper');
+    const notFoundSection = document.getElementById('not-found-section');
     
     let cropper = null;
     const cropModal = document.getElementById('crop-modal');
@@ -47,7 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     Object.keys(toolsConfig).forEach((key) => {
         const tool = toolsConfig[key];
-        const button = document.createElement('button');
+        const button = document.createElement('a');
+        button.href = '#';
         button.className = 'tool-button';
         button.dataset.tool = key;
         button.textContent = tool.name;
@@ -137,6 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
         toolButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tool === toolKey));
         toolContents.forEach(content => content.classList.toggle('active', content.id === toolKey));
         
+        toolMain.style.display = 'block';
+        notFoundSection.style.display = 'none';
+        mainContentWrapper.style.display = 'block';
+
         update_options_ui();
         resultBox.style.display = 'none';
         originalFile = null;
@@ -148,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const toolKey = button.dataset.tool;
             set_active_tool(toolKey);
+            document.title = `${toolsConfig[toolKey].name}`;
         });
     });
     
@@ -196,12 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!cropper) return;
             aspectRatioBtns.forEach(b => b.classList.remove('active'));
             e.currentTarget.classList.add('active');
-            const ratio = e.currentTarget.dataset.ratio;
-            if (ratio === 'original') {
-                 cropper.setAspectRatio(imageToCrop.naturalWidth / imageToCrop.naturalHeight);
-            } else {
-                 cropper.setAspectRatio(parseFloat(ratio));
-            }
+            cropper.setAspectRatio(parseFloat(e.currentTarget.dataset.ratio));
         });
     });
     
@@ -237,11 +239,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { "Content-Type": file.type },
                 body: file
             });
-            if (!uploadResponse.ok) throw new Error('File upload to FotoEnhancer failed.');
 
             uploadedFileUrl = "https://files.fotoenhancer.com/uploads/" + uniqueFileName;
         } catch(error) {
-            console.error('Pre-upload failed:', error);
             statusText.textContent = `Upload failed: ${error.message}`;
             uploadedFileUrl = null;
         } finally {
@@ -262,44 +262,29 @@ document.addEventListener('DOMContentLoaded', () => {
             imageToCrop.src = e.target.result;
             cropModal.style.display = 'flex';
             document.body.classList.add('modal-open');
-            
-            const img = new Image();
-            img.src = e.target.result;
-            img.onload = () => {
-                cropper = new Cropper(imageToCrop, {
-                    viewMode: 1,
-                    autoCropArea: 0.8,
-                    background: false,
-                    minCropBoxWidth: 50,
-                    minCropBoxHeight: 50,
-                    ready() {
-                         const oriBtn = document.querySelector('.aspect-ratio-btn[data-ratio="original"]');
-                         if (oriBtn) {
-                            oriBtn.click();
-                         }
-                    },
-                    crop(event) {
-                        cropWidthInput.value = Math.round(event.detail.width);
-                        cropHeightInput.value = Math.round(event.detail.height);
-                        const currentRatio = event.detail.width / event.detail.height;
-                        const naturalRatio = imageToCrop.naturalWidth / imageToCrop.naturalHeight;
-                        
-                        let foundMatch = false;
-                        aspectRatioBtns.forEach(btn => {
-                            const btnRatio = parseFloat(btn.dataset.ratio);
-                            const isOriginal = btn.dataset.ratio === 'original' && Math.abs(currentRatio - naturalRatio) < 0.01;
-                            const isNumericMatch = Math.abs(currentRatio - btnRatio) < 0.01;
-                            
-                            if (isOriginal || isNumericMatch) {
-                                btn.classList.add('active');
-                                foundMatch = true;
-                            } else {
-                                btn.classList.remove('active');
-                            }
-                        });
-                    },
-                });
-            };
+            cropper = new Cropper(imageToCrop, {
+                viewMode: 1,
+                autoCropArea: 0.8,
+                background: false,
+                minCropBoxWidth: 50,
+                minCropBoxHeight: 50,
+                crop(event) {
+                    cropWidthInput.value = Math.round(event.detail.width);
+                    cropHeightInput.value = Math.round(event.detail.height);
+                    const currentRatio = event.detail.width / event.detail.height;
+                    let foundMatch = false;
+                    aspectRatioBtns.forEach(btn => {
+                        const btnRatio = parseFloat(btn.dataset.ratio);
+                        const isActive = Math.abs(currentRatio - btnRatio) < 0.001 || (isNaN(currentRatio) && isNaN(btnRatio));
+                        btn.classList.toggle('active', isActive);
+                        if (isActive) foundMatch = true;
+                    });
+                    if (!foundMatch && !isNaN(currentRatio)) {
+                        document.querySelector('.aspect-ratio-btn[data-ratio="NaN"]').classList.add('active');
+                    }
+                },
+            });
+            document.querySelector('.aspect-ratio-btn[data-ratio="NaN"]').classList.add('active');
         };
         reader.readAsDataURL(file);
         fileInput.value = null;
@@ -323,7 +308,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
         } catch (error) {
-            console.error('Download failed:', error);
             window.open(url, '_blank');
         } finally {
             downloadButton.textContent = 'Download';
@@ -382,7 +366,6 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             resultAfterImg.onerror = () => { throw new Error('Failed to load the processed image.'); }
         } catch (error) {
-            console.error('Error:', error);
             loader.style.display = 'none';
             statusText.textContent = `An error occurred: ${error.message}`;
         }
@@ -471,5 +454,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.ba-slider').forEach(init_slider);
     init_nav_scroll();
     
-    set_active_tool('removebg');
+    const firstToolKey = Object.keys(toolsConfig)[0];
+    set_active_tool(firstToolKey);
 });
