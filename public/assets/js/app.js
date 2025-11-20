@@ -2,33 +2,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const toolsConfig = {
         removebg: {
             name: 'Remove Background',
-            description: 'Automatically remove the background from an image with high precision in just a few seconds.',
-            buttonText: 'Remove',
-            demo: { aspectRatio: '1200 / 700', before: 'https://files.catbox.moe/dlimod.png', after: 'https://files.catbox.moe/z4l6ea.png' }
+            desc: 'Automatically remove the background from an image with high precision in just a few seconds.',
+            demo: { aspectRatio: '1200 / 700', before: '__before_removebg.jpg', after: '__after_removebg.png' }
         },
         enhance: {
             name: 'Enhance',
-            description: 'Automatically improve the quality, sharpness, and colors of your image for a brighter, clearer result.',
-            buttonText: 'Enhance',
-            demo: { aspectRatio: '1200 / 700', before: 'https://files.catbox.moe/1pxxl6.jpg', after: 'https://files.catbox.moe/zxqmsw.png' }
+            desc: 'Automatically improve the quality, sharpness, and colors of your image for a brighter, clearer result.',
+            demo: { aspectRatio: '1200 / 700', before: '__before_enhance.jpg', after: '__after_enhance.png' }
         },
         upscale: {
             name: 'Upscale',
-            description: 'Enlarge your image\'s resolution up to 4x without significant loss of detail quality.',
-            buttonText: 'Upscale',
-            demo: { aspectRatio: '1200 / 700', before: 'https://files.catbox.moe/kzvbhy.jpg', after: 'https://files.catbox.moe/ho0az9.png' }
+            desc: 'Enlarge your image\'s resolution up to 4x without significant loss of detail quality.',
+            demo: { aspectRatio: '1200 / 700', before: '__before_upscale.jpg', after: '__after_upscale.png' }
         },
         restore: {
             name: 'Restore',
-            description: 'Fix old, damaged, scratched, or faded photos to look like new again with AI technology.',
-            buttonText: 'Restore',
-            demo: { aspectRatio: '1200 / 700', before: 'https://files.catbox.moe/x4v1z0.jpg', after: 'https://files.catbox.moe/oi2rh8.jpg' }
+            desc: 'Fix old, damaged, scratched, or faded photos to look like new again with AI technology.',
+            demo: { aspectRatio: '1200 / 700', before: '__before_restore.jpg', after: '__after_restore.png' }
         },
         colorize: {
             name: 'Colorize',
-            description: 'Realistically colorize black and white photos and bring your memories back to life.',
-            buttonText: 'Colorize',
-            demo: { aspectRatio: '1200 / 700', before: 'https://files.catbox.moe/hf7t5g.jpg', after: 'https://files.catbox.moe/aivymb.jpg' }
+            desc: 'Realistically colorize black and white photos and bring your memories back to life.',
+            demo: { aspectRatio: '1200 / 700', before: '__before_colorize.jpg', after: '__after_colorize.png' }
         }
     };
 
@@ -65,10 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
         section.className = 'tool-content';
         section.innerHTML = `
             <h2>${tool.name}</h2>
-            <p class="description">${tool.description}</p>
+            <p class="description">${tool.desc}</p>
             <div class="ba-slider" style="aspect-ratio: ${tool.demo.aspectRatio};">
-                <div class="image-wrapper before-image"><img src="${tool.demo.before}" alt="Before"><span class="label before">Before</span></div>
-                <div class="image-wrapper after-image"><img src="${tool.demo.after}" alt="After"><span class="label after">After</span></div>
+                <div class="image-wrapper before-image"><img src="../assets/img/${tool.demo.before}" alt="Before"><span class="label before">Before</span></div>
+                <div class="image-wrapper after-image"><img src="../assets/img/${tool.demo.after}" alt="After"><span class="label after">After</span></div>
                 <div class="handle"><div class="arrow"></div></div>
             </div>
         `;
@@ -115,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const update_options_ui = () => {
         if (!activeTool) return;
         const tool = toolsConfig[activeTool];
-        improveButton.textContent = tool.buttonText || 'Process';
+        improveButton.textContent = tool.name || 'Process';
 
         const isUpscaleTool = activeTool === 'upscale';
         upscaleLevelGroup.style.display = isUpscaleTool ? 'flex' : 'none';
@@ -357,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     processingSection.style.display = 'none';
                     resultSliderWrapper.style.display = 'flex';
                     resultButtons.style.display = 'flex';
-                    redoButton.textContent = `${toolsConfig[activeTool].buttonText} Again`;
+                    redoButton.textContent = `${toolsConfig[activeTool].name} Again`;
                     init_slider(resultSlider);
                 };
                  img.onerror = () => { throw new Error('Failed to load the original image for sizing.'); }
