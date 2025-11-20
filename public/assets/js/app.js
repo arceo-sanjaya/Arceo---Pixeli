@@ -32,20 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const slugify = text => text.toLowerCase().replace(/\s+/g, '-');
-    const tool_slugs = Object.fromEntries(Object.keys(toolsConfig).map(key => [slugify(toolsConfig[key].name), key]));
-    const tool_key_by_slug = Object.fromEntries(Object.keys(toolsConfig).map(key => [key, slugify(toolsConfig[key].name)]));
-    
-    if (!window.location.hash) {
-        const firstToolKey = Object.keys(toolsConfig)[0];
-        const firstToolSlug = tool_key_by_slug[firstToolKey];
-        history.replaceState(null, '', `#${firstToolSlug}`);
-    }
-
     const toolNav = document.getElementById('tool-nav');
     const toolMain = document.getElementById('tool-main');
     const mainContentWrapper = document.getElementById('main-content-wrapper');
-    const notFoundSection = document.getElementById('not-found-section');
     
     let cropper = null;
     const cropModal = document.getElementById('crop-modal');
@@ -58,8 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     Object.keys(toolsConfig).forEach((key) => {
         const tool = toolsConfig[key];
-        const button = document.createElement('a');
-        button.href = `#${slugify(tool.name)}`;
+        const button = document.createElement('button');
         button.className = 'tool-button';
         button.dataset.tool = key;
         button.textContent = tool.name;
@@ -149,52 +137,19 @@ document.addEventListener('DOMContentLoaded', () => {
         toolButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tool === toolKey));
         toolContents.forEach(content => content.classList.toggle('active', content.id === toolKey));
         
-        toolMain.style.display = 'block';
-        notFoundSection.style.display = 'none';
-        mainContentWrapper.style.display = 'block';
-
         update_options_ui();
         resultBox.style.display = 'none';
         originalFile = null;
         uploadedFileUrl = null;
-    };
-
-    const not_found_page = () => {
-        toolMain.style.display = 'none';
-        mainContentWrapper.style.display = 'none';
-        notFoundSection.style.display = 'block';
-        document.title = '404 Not Found';
-    };
-
-    const handle_route_change = () => {
-        const hash = window.location.hash.substring(1);
-        
-        if (tool_slugs[hash]) {
-            const toolKey = tool_slugs[hash];
-            set_active_tool(toolKey);
-            document.title = `${toolsConfig[toolKey].name}`;
-        } else if (hash === '') {
-            const firstToolKey = Object.keys(toolsConfig)[0];
-            const firstToolSlug = tool_key_by_slug[firstToolKey];
-            history.replaceState(null, '', `#${firstToolSlug}`);
-            set_active_tool(firstToolKey);
-            document.title = toolsConfig[firstToolKey].name;
-        } else {
-            not_found_page();
-        }
     };
     
     toolButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
             const toolKey = button.dataset.tool;
-            const slug = tool_key_by_slug[toolKey];
-            history.pushState(null, '', `#${slug}`);
-            handle_route_change();
+            set_active_tool(toolKey);
         });
     });
-
-    window.addEventListener('popstate', handle_route_change);
     
     function data_url_to_blob(dataurl) {
         let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
@@ -241,7 +196,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!cropper) return;
             aspectRatioBtns.forEach(b => b.classList.remove('active'));
             e.currentTarget.classList.add('active');
-            cropper.setAspectRatio(parseFloat(e.currentTarget.dataset.ratio));
+            const ratio = e.currentTarget.dataset.ratio;
+            if (ratio === 'original') {
+                 cropper.setAspectRatio(imageToCrop.naturalWidth / imageToCrop.naturalHeight);
+            } else {
+                 cropper.setAspectRatio(parseFloat(ratio));
+            }
         });
     });
     
@@ -302,29 +262,44 @@ document.addEventListener('DOMContentLoaded', () => {
             imageToCrop.src = e.target.result;
             cropModal.style.display = 'flex';
             document.body.classList.add('modal-open');
-            cropper = new Cropper(imageToCrop, {
-                viewMode: 1,
-                autoCropArea: 0.8,
-                background: false,
-                minCropBoxWidth: 50,
-                minCropBoxHeight: 50,
-                crop(event) {
-                    cropWidthInput.value = Math.round(event.detail.width);
-                    cropHeightInput.value = Math.round(event.detail.height);
-                    const currentRatio = event.detail.width / event.detail.height;
-                    let foundMatch = false;
-                    aspectRatioBtns.forEach(btn => {
-                        const btnRatio = parseFloat(btn.dataset.ratio);
-                        const isActive = Math.abs(currentRatio - btnRatio) < 0.001 || (isNaN(currentRatio) && isNaN(btnRatio));
-                        btn.classList.toggle('active', isActive);
-                        if (isActive) foundMatch = true;
-                    });
-                    if (!foundMatch && !isNaN(currentRatio)) {
-                        document.querySelector('.aspect-ratio-btn[data-ratio="NaN"]').classList.add('active');
-                    }
-                },
-            });
-            document.querySelector('.aspect-ratio-btn[data-ratio="NaN"]').classList.add('active');
+            
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                cropper = new Cropper(imageToCrop, {
+                    viewMode: 1,
+                    autoCropArea: 0.8,
+                    background: false,
+                    minCropBoxWidth: 50,
+                    minCropBoxHeight: 50,
+                    ready() {
+                         const oriBtn = document.querySelector('.aspect-ratio-btn[data-ratio="original"]');
+                         if (oriBtn) {
+                            oriBtn.click();
+                         }
+                    },
+                    crop(event) {
+                        cropWidthInput.value = Math.round(event.detail.width);
+                        cropHeightInput.value = Math.round(event.detail.height);
+                        const currentRatio = event.detail.width / event.detail.height;
+                        const naturalRatio = imageToCrop.naturalWidth / imageToCrop.naturalHeight;
+                        
+                        let foundMatch = false;
+                        aspectRatioBtns.forEach(btn => {
+                            const btnRatio = parseFloat(btn.dataset.ratio);
+                            const isOriginal = btn.dataset.ratio === 'original' && Math.abs(currentRatio - naturalRatio) < 0.01;
+                            const isNumericMatch = Math.abs(currentRatio - btnRatio) < 0.01;
+                            
+                            if (isOriginal || isNumericMatch) {
+                                btn.classList.add('active');
+                                foundMatch = true;
+                            } else {
+                                btn.classList.remove('active');
+                            }
+                        });
+                    },
+                });
+            };
         };
         reader.readAsDataURL(file);
         fileInput.value = null;
@@ -495,5 +470,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.ba-slider').forEach(init_slider);
     init_nav_scroll();
-    handle_route_change();
+    
+    set_active_tool('removebg');
 });
