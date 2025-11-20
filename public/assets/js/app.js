@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toolMain = document.getElementById('tool-main');
     const mainContentWrapper = document.getElementById('main-content-wrapper');
     const notFoundSection = document.getElementById('not-found-section');
-    
+
     let cropper = null;
     const cropModal = document.getElementById('crop-modal');
     const imageToCrop = document.getElementById('image-to-crop');
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         toolMain.appendChild(section);
     });
-    
+
     const removeBgPreviewAfter = document.querySelector('#removebg .ba-slider .after-image');
     if (removeBgPreviewAfter) {
         removeBgPreviewAfter.classList.add('checkerboard-bg');
@@ -135,10 +135,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const set_active_tool = (toolKey) => {
         if (!toolsConfig[toolKey]) return;
         activeTool = toolKey;
-        
+
         toolButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tool === toolKey));
         toolContents.forEach(content => content.classList.toggle('active', content.id === toolKey));
-        
+
         toolMain.style.display = 'block';
         notFoundSection.style.display = 'none';
         mainContentWrapper.style.display = 'block';
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         originalFile = null;
         uploadedFileUrl = null;
     };
-    
+
     toolButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.title = `${toolsConfig[toolKey].name}`;
         });
     });
-    
+
     function data_url_to_blob(dataurl) {
         let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
             bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
@@ -174,14 +174,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         previewImage.src = dataUrl;
         resultBeforeImg.src = dataUrl;
-        
+
         resultBox.style.display = 'flex';
         previewSection.style.display = 'flex';
         processingSection.style.display = 'none';
         resultSliderWrapper.style.display = 'none';
         resultButtons.style.display = 'none';
         update_options_ui();
-        
+
         pre_upload_file(blob, originalFile.name);
 
         cropModal.style.display = 'none';
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cropper.setAspectRatio(parseFloat(e.currentTarget.dataset.ratio));
         });
     });
-    
+
     const handle_manual_crop_change = () => {
         if (!cropper) return;
         const data = cropper.getData();
@@ -231,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ folder: "uploads", fileName: uniqueFileName })
             });
-            if (!getUrlResponse.ok) throw new Error('Failed to get signed URL.');
             const data = await getUrlResponse.json();
 
             const uploadResponse = await fetch(data.presignedUrl, {
@@ -256,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         originalFile = file;
         uploadedFileUrl = null;
-        
+
         const reader = new FileReader();
         reader.onload = e => {
             imageToCrop.src = e.target.result;
@@ -295,7 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadButton.textContent = 'Downloading...';
             downloadButton.disabled = true;
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Network response was not ok.');
             const blob = await response.blob();
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -314,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadButton.disabled = false;
         }
     }
-    
+
     downloadButton.addEventListener('click', () => {
         download_image(resultAfterImg.src, originalFile.name);
     });
@@ -391,14 +389,10 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify(body)
         });
 
-        if (!response.ok) {
-            throw new Error('Backend API failed.');
-        }
-
         const data = await response.json();
         return data.resultImageUrl || null;
     }
-    
+
     function init_slider(slider) {
         let isDragging = false;
         const updateSlider = (clientX) => {
@@ -437,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
         new ResizeObserver(updateNavScrollbar).observe(toolNav);
         updateNavScrollbar();
     }
-    
+
     uploadBox.addEventListener('click', () => fileInput.click());
     uploadBox.addEventListener('dragover', e => { e.preventDefault(); uploadBox.style.backgroundColor = '#202035'; });
     uploadBox.addEventListener('dragleave', () => uploadBox.style.backgroundColor = 'var(--color-secondary-bg)');
@@ -447,13 +441,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.dataTransfer.files.length > 0) handle_file(e.dataTransfer.files[0]);
     });
     fileInput.addEventListener('change', e => { if (e.target.files.length > 0) handle_file(e.target.files[0]); });
-    
+
     needCompressSelect.addEventListener('change', update_options_ui);
     upscaleLevelSelect.addEventListener('change', update_options_ui);
 
     document.querySelectorAll('.ba-slider').forEach(init_slider);
     init_nav_scroll();
-    
+
     const firstToolKey = Object.keys(toolsConfig)[0];
     set_active_tool(firstToolKey);
 });
